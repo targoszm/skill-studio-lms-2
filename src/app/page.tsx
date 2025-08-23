@@ -1,16 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 /**
- * MatDash loader (v10)
- * - Fetch /matdash/index.html
- * - Extract vendor scripts (in order) EXCEPT /matdash/app.js
- * - Extract inline scripts
- * - Strip scripts/styles from HTML before injecting
- * - Inject Google Fonts + a single style.css
- * - Load vendor scripts sequentially -> app.js once -> run inline scripts once
- * - Safe in v0 preview sandbox
+ * MatDash portal loader (v11)
+ * - Renders NOTHING inside React (prevents hydration errors like #418)
+ * - Creates #matdash-portal in document.body and injects HTML there
+ * - Vendor scripts -> app.js -> inline scripts (sequential, once)
+ * - Self-cleans stale CSS/JS before injecting
  */
 
 declare global {
@@ -23,30 +20,36 @@ declare global {
   }
 }
 
-const DEBUG = false; // set to true if you want console logs
-const VER = '10';    // bump to bust caches when you update assets
+const VER = '11'; // bump to bust caches if needed
+const APP_CSS = `/matdash/style.css?v=${VER}`;
+const APP_JS  = `/matdash/app.js?v=${VER}`;
 
 export default function Home() {
-  const [html, setHtml] = useState<string>('');
-
   useEffect(() => {
     let cancelled = false;
 
-    const log = (...args: any[]) => {
-      if (DEBUG) console.log('[MATDASH LOADER]', ...args);
+    // 0) Create (or replace) the portal outside React
+    const existing = document.getElementById('matdash-portal');
+    if (existing) existing.remove();
+    const portal = document.createElement('div');
+    portal.id = 'matdash-portal';
+    portal.style.minHeight = '100vh';
+    portal.style.width = '100vw';
+    document.body.appendChild(portal);
+
+    const normalizeSrc = (src: string) => {
+      if (!src) return '';
+      if (/^https?:\/\//i.test(src)) return src;
+      if (src.startsWith('/')) return src;
+      return `/matdash/${src.replace(/^\.?\//, '')}`;
     };
 
-    const APP_CSS = `/matdash/style.css?v=${VER}`;
-    const APP_JS = `/matdash/app.js?v=${VER}`;
-
     const removeExisting = () => {
-      // Clean previously injected tags (avoid redeclare + double styles)
       document
         .querySelectorAll<HTMLScriptElement>(
           'script[data-matdash="vendor"],script[data-matdash="app"]'
         )
         .forEach((n) => n.remove());
-
       document
         .querySelectorAll<HTMLLinkElement>('link[data-matdash="style"]')
         .forEach((n) => n.remove());
@@ -61,21 +64,9 @@ export default function Home() {
       document.head.appendChild(link);
     };
 
-    const normalizeSrc = (src: string) => {
-      if (!src) return '';
-      if (/^https?:\/\//i.test(src)) return src;
-      if (src.startsWith('/')) return src;
-      // make relative paths point to /matdash/…
-      return `/matdash/${src.replace(/^\.?\//, '')}`;
-    };
-
     const loadScriptOnce = (src: string, dataAttr: 'vendor' | 'app') =>
       new Promise<void>((resolve, reject) => {
-        // If a script with this exact src already exists, remove it first
-        document
-          .querySelectorAll<HTMLScriptElement>(`script[src="${src}"]`)
-          .forEach((n) => n.remove());
-
+        document.querySelectorAll<HTMLScriptElement>(`script[src="${src}"]`).forEach((n) => n.remove());
         const s = document.createElement('script');
         s.src = src;
         s.defer = true;
@@ -86,12 +77,10 @@ export default function Home() {
       });
 
     const loadSequential = async (srcs: string[]) => {
-      for (const src of srcs) {
-        await loadScriptOnce(src, 'vendor');
-        log('loaded vendor:', src);
-      }
+      for (const src of srcs) await loadScriptOnce(src, 'vendor');
     };
 
+    // 1) Fetch + prepare HTML
     fetch('/matdash/index.html')
       .then((r) => r.text())
       .then(async (raw) => {
@@ -99,86 +88,74 @@ export default function Home() {
 
         const doc = new DOMParser().parseFromString(raw, 'text/html');
 
-        // 1) Collect vendor scripts (in original order), excluding app.js
+        // Collect vendor scripts (keep order), excluding app.js
         const vendorSrcs: string[] = [];
         doc.querySelectorAll('script[src]').forEach((el) => {
           const src = normalizeSrc(el.getAttribute('src') || '');
           if (!src) return;
-          // skip our main app.js (we load it once with a cache-busting query)
-          if (src.includes('/matdash/app.js')) return;
+          if (src.includes('/matdash/app.js')) return; // we inject with version
           if (!vendorSrcs.includes(src)) vendorSrcs.push(src);
         });
 
-        // 2) Collect inline scripts (usually init code like chart setup)
+        // Collect inline scripts
         const inlineScripts: string[] = [];
         doc.querySelectorAll('script:not([src])').forEach((el) => {
           const code = el.textContent?.trim();
           if (code) inlineScripts.push(code);
         });
 
-        // 3) Remove all scripts and styles from fetched HTML
+        // Strip scripts & styles from fetched HTML body
         doc.querySelectorAll('script').forEach((el) => el.remove());
         doc.querySelectorAll('link[rel="stylesheet"]').forEach((el) => el.remove());
 
-        // 4) Inject sanitized HTML into the page
-        const bodyHtml = doc.body?.innerHTML ?? '';
-        setHtml(bodyHtml);
+        // Inject sanitized HTML into the OUT-OF-REACT portal
+        portal.innerHTML = doc.body?.innerHTML ?? '';
 
-        // 5) Clean any previously injected CSS/JS
+        // Clean stale assets
         removeExisting();
 
-        // 6) Fonts + single stylesheet
+        // Fonts + ONE stylesheet
         ensureHeadLink('matdash-icons', 'https://fonts.googleapis.com/icon?family=Material+Icons');
         ensureHeadLink(
           'matdash-roboto',
           'https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap'
         );
-
         const css = document.createElement('link');
         css.rel = 'stylesheet';
         css.href = APP_CSS;
         css.setAttribute('data-matdash', 'style');
         document.head.appendChild(css);
 
-        // 7) Load vendor libs sequentially (once)
+        // Load vendor scripts once
         if (!window.__MATDASH_VENDOR_DONE) {
           try {
             await loadSequential(vendorSrcs);
             window.__MATDASH_VENDOR_DONE = true;
-
-            // Make sure jQuery globals exist if vendor provided jQuery
             if (!window.$ && (window as any).jQuery) window.$ = (window as any).jQuery;
           } catch (err) {
             console.error('MatDash vendor script failed:', err);
           }
         }
 
-        // 8) Load app.js once
+        // Load app.js once
         const bootApp = async () => {
           if (window.__MATDASH_BOOTED) return;
           try {
             await loadScriptOnce(APP_JS, 'app');
             window.__MATDASH_BOOTED = true;
-            log('booted app.js');
           } catch (err) {
             console.error('MatDash app.js failed:', err);
           }
         };
 
-        // 9) Run inline init scripts (after app.js)
+        // Run inline init scripts once
         const runInlineOnce = () => {
           if (window.__MATDASH_INLINE_DONE) return;
           try {
-            // Some bundles expect these events
             document.dispatchEvent(new Event('DOMContentLoaded'));
             window.dispatchEvent(new Event('load'));
-
-            for (const code of inlineScripts) {
-              // eslint-disable-next-line no-new-func
-              new Function(code)();
-            }
+            for (const code of inlineScripts) new Function(code)();
             window.__MATDASH_INLINE_DONE = true;
-            log('ran inline inits');
           } catch (err) {
             console.error('MatDash inline script error:', err);
           }
@@ -191,14 +168,11 @@ export default function Home() {
 
     return () => {
       cancelled = true;
+      // Optional cleanup: remove portal on unmount
+      portal.remove();
     };
   }, []);
 
-  // Render ONLY a plain div with the injected markup
-  return (
-    <div
-      style={{ minHeight: '100vh', width: '100vw' }}
-      dangerouslySetInnerHTML={{ __html: html || '' }}
-    />
-  );
+  // Render nothing into React’s DOM to avoid hydration mismatches
+  return null;
 }
