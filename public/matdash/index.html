@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MatDash LMS - Learning Management System</title>
+    
+    <!-- Material Icons & Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app" class="app">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <span class="material-icons">school</span>
+                    </div>
+                    <span class="logo-text">MatDash LMS</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">MAIN</div>
+                    <ul class="nav-list">
+                        <li class="nav-item active" data-view="dashboard">
+                            <a href="#" class="nav-link">
+                                <span class="material-icons">dashboard</span>
+                                <span class="nav-text">Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="nav-item" data-view="analytics">
+                            <a href="#" class="nav-link">
+                                <span class="material-icons">analytics</span>
+                                <span class="nav-text">Analytics</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">COURSES</div>
+                    <ul class="nav-list">
+                        <li class="nav-item" data-view="courses">
+                            <a href="#" class="nav-link">
+                                <span class="material-icons">library_books</span>
+                                <span class="nav-text">My Courses</span>
+                                <span class="nav-badge">89</span>
+                            </a>
+                        </li>
+                        <li class="nav-item" data-view="create-course">
+                            <a href="#" class="nav-link">
+                                <span class="material-icons">add_circle</span>
+                                <span class="nav-text">Create Course</span>
+                                <span class="nav-badge new">New</span>
+                            </a>
+                        </li>
+                        <li class="nav-item" data-view="templates">
+                            <a href="#" class="nav-link">
+                                <span class="material-icons">design_services</span>
+                                <span class="nav-text">Templates</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">USERS</div>
+                    <ul class="nav-list">
+                        <li class="nav-item" data-view="students">
+                            <a href="#" class="nav-link">
+                                <span class="material-icons">people</span>
+                                <span class="nav-text">Students</span>
+                            </a>
+                        </li>
+                        <li class="nav-item" data-view="avatars">
+                            <a href="#" class="nav-link">
+                                <span class="material-icons">face</span>
+                                <span class="nav-text">AI Avatars</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face" alt="Admin" class="user-avatar">
+                    <div class="user-info">
+                        <div class="user-name">John Doe</div>
+                        <div class="user-role">Administrator</div>
+                    </div>
+                    <button class="user-menu-btn">
+                        <span class="material-icons">more_vert</span>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="top-header">
+                <div class="header-left">
+                    <button class="sidebar-toggle" id="sidebar-toggle">
+                        <span class="material-icons">menu</span>
+                    </button>
+                    <div class="breadcrumb">
+                        <span class="breadcrumb-item">MatDash LMS</span>
+                        <span class="breadcrumb-separator">/</span>
+                        <span class="breadcrumb-item current" id="current-page">Dashboard</span>
+                    </div>
+                </div>
+                
+                <div class="header-right">
+                    <div class="header-actions">
+                        <button class="header-btn" title="Search">
+                            <span class="material-icons">search</span>
+                        </button>
+                        <button class="header-btn" title="Notifications">
+                            <span class="material-icons">notifications</span>
+                            <span class="notification-dot"></span>
+                        </button>
+                        <button class="header-btn" title="Theme Toggle" id="theme-toggle">
+                            <span class="material-icons">dark_mode</span>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="page-content">
+                <!-- Dashboard View -->
+                <div id="dashboard-view" class="view active">
+                    <div class="page-header">
+                        <div class="page-header-left">
+                            <h1 class="page-title">Dashboard Overview</h1>
+                            <p class="page-subtitle">Monitor your learning platform performance and key metrics</p>
+                        </div>
+                        <div class="page-header-right">
+                            <button class="btn btn-primary" id="create-course-btn">
+                                <span class="material-icons">add</span>
+                                Create New Course
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Metrics Cards -->
+                    <div class="metrics-grid">
+                        <div class="metric-card primary">
+                            <div class="metric-content">
+                                <h3 class="metric-value">15,420</h3>
+                                <p class="metric-label">Total Students</p>
+                                <div class="metric-trend positive">
+                                    <span class="material-icons">trending_up</span>
+                                    <span>+12.5%</span>
+                                </div>
+                            </div>
+                            <div class="metric-icon">
+                                <span class="material-icons">people</span>
+                            </div>
+                        </div>
+                        
+                        <div class="metric-card success">
+                            <div class="metric-content">
+                                <h3 class="metric-value">89</h3>
+                                <p class="metric-label">Active Courses</p>
+                                <div class="metric-trend positive">
+                                    <span class="material-icons">add</span>
+                                    <span>5 new</span>
+                                </div>
+                            </div>
+                            <div class="metric-icon">
+                                <span class="material-icons">school</span>
+                            </div>
+                        </div>
+                        
+                        <div class="metric-card warning">
+                            <div class="metric-content">
+                                <h3 class="metric-value">78.5%</h3>
+                                <p class="metric-label">Completion Rate</p>
+                                <div class="metric-trend positive">
+                                    <span class="material-icons">trending_up</span>
+                                    <span>+3.2%</span>
+                                </div>
+                            </div>
+                            <div class="metric-icon">
+                                <span class="material-icons">task_alt</span>
+                            </div>
+                        </div>
+                        
+                        <div class="metric-card info">
+                            <div class="metric-content">
+                                <h3 class="metric-value">$245K</h3>
+                                <p class="metric-label">Revenue</p>
+                                <div class="metric-trend positive">
+                                    <span class="material-icons">trending_up</span>
+                                    <span>+8.2%</span>
+                                </div>
+                            </div>
+                            <div class="metric-icon">
+                                <span class="material-icons">attach_money</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Section -->
+                    <div class="charts-grid">
+                        <div class="chart-card">
+                            <div class="card-header">
+                                <h3 class="card-title">Student Enrollments</h3>
+                                <div class="card-actions">
+                                    <button class="btn-icon">
+                                        <span class="material-icons">more_vert</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-content">
+                                <div class="chart-container" style="position: relative; height: 300px;">
+                                    <canvas id="enrollments-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="chart-card">
+                            <div class="card-header">
+                                <h3 class="card-title">Course Categories</h3>
+                            </div>
+                            <div class="card-content">
+                                <div class="chart-container" style="position: relative; height: 300px;">
+                                    <canvas id="categories-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="activity-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Recent Activity</h3>
+                            <a href="#" class="view-all-link">View All</a>
+                        </div>
+                        <div class="card-content">
+                            <div class="activity-list" id="activity-list">
+                                <!-- Activity items populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Create Course Wizard View -->
+                <div id="create-course-view" class="view">
+                    <div class="page-header">
+                        <div class="page-header-left">
+                            <h1 class="page-title">Create New Course</h1>
+                            <p class="page-subtitle">Follow the 9-step wizard to create your professional course</p>
+                        </div>
+                    </div>
+
+                    <!-- Progress Stepper -->
+                    <div class="stepper-container">
+                        <div class="stepper">
+                            <div class="step active" data-step="1">
+                                <div class="step-number">1</div>
+                                <div class="step-title">Course Setup</div>
+                            </div>
+                            <div class="step" data-step="2">
+                                <div class="step-number">2</div>
+                                <div class="step-title">Avatar Selection</div>
+                            </div>
+                            <div class="step" data-step="3">
+                                <div class="step-number">3</div>
+                                <div class="step-title">Template</div>
+                            </div>
+                            <div class="step" data-step="4">
+                                <div class="step-number">4</div>
+                                <div class="step-title">Content Upload</div>
+                            </div>
+                            <div class="step" data-step="5">
+                                <div class="step-number">5</div>
+                                <div class="step-title">Course Builder</div>
+                            </div>
+                            <div class="step" data-step="6">
+                                <div class="step-number">6</div>
+                                <div class="step-title">Assessments</div>
+                            </div>
+                            <div class="step" data-step="7">
+                                <div class="step-number">7</div>
+                                <div class="step-title">Preview</div>
+                            </div>
+                            <div class="step" data-step="8">
+                                <div class="step-number">8</div>
+                                <div class="step-title">Avatar Generate</div>
+                            </div>
+                            <div class="step" data-step="9">
+                                <div class="step-number">9</div>
+                                <div class="step-title">Publish</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step Content -->
+                    <div class="wizard-content">
+                        <!-- Step 1: Course Setup -->
+                        <div class="step-content active" id="step-1">
+                            <div class="form-card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Course Information</h3>
+                                    <p class="card-subtitle">Enter basic details about your course</p>
+                                </div>
+                                <div class="card-content">
+                                    <form class="course-form">
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label class="form-label">Course Title *</label>
+                                                <input type="text" class="form-control" id="course-title" placeholder="Enter course title">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Category</label>
+                                                <select class="form-control" id="course-category">
+                                                    <option value="business">Business</option>
+                                                    <option value="technology">Technology</option>
+                                                    <option value="education">Education</option>
+                                                    <option value="creative">Creative</option>
+                                                    <option value="healthcare">Healthcare</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label class="form-label">Course Description *</label>
+                                            <textarea class="form-control" id="course-description" rows="4" placeholder="Describe what students will learn"></textarea>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label class="form-label">Learning Objectives</label>
+                                            <div class="objectives-list" id="objectives-list">
+                                                <div class="objective-item">
+                                                    <input type="text" class="form-control" placeholder="Enter learning objective">
+                                                    <button type="button" class="btn btn-outline btn-sm" onclick="addObjective()">
+                                                        <span class="material-icons">add</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label class="form-label">Duration</label>
+                                                <input type="text" class="form-control" id="course-duration" placeholder="e.g., 6 weeks">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Difficulty Level</label>
+                                                <select class="form-control" id="course-level">
+                                                    <option value="beginner">Beginner</option>
+                                                    <option value="intermediate">Intermediate</option>
+                                                    <option value="advanced">Advanced</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Avatar Selection -->
+                        <div class="step-content" id="step-2">
+                            <div class="form-card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Choose Your AI Avatar</h3>
+                                    <p class="card-subtitle">Select an AI avatar that will present your course content</p>
+                                </div>
+                                <div class="card-content">
+                                    <div class="avatar-grid" id="wizard-avatar-grid">
+                                        <!-- Avatar options populated by JavaScript -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Navigation Buttons -->
+                        <div class="wizard-navigation">
+                            <button class="btn btn-outline" id="prev-step-btn" disabled>
+                                <span class="material-icons">arrow_back</span>
+                                Previous
+                            </button>
+                            <div class="wizard-info">
+                                <span id="step-indicator">Step 1 of 9</span>
+                            </div>
+                            <button class="btn btn-primary" id="next-step-btn">
+                                Next
+                                <span class="material-icons">arrow_forward</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Templates View -->
+                <div id="templates-view" class="view">
+                    <div class="page-header">
+                        <div class="page-header-left">
+                            <h1 class="page-title">Course Templates</h1>
+                            <p class="page-subtitle">Choose from professionally designed course templates</p>
+                        </div>
+                    </div>
+
+                    <div class="templates-grid" id="templates-grid">
+                        <!-- Templates populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Courses View -->
+                <div id="courses-view" class="view">
+                    <div class="page-header">
+                        <div class="page-header-left">
+                            <h1 class="page-title">My Courses</h1>
+                            <p class="page-subtitle">Manage your course library and track performance</p>
+                        </div>
+                        <div class="page-header-right">
+                            <button class="btn btn-outline">
+                                <span class="material-icons">filter_list</span>
+                                Filter
+                            </button>
+                            <button class="btn btn-primary" onclick="lms.navigateToView('create-course')">
+                                <span class="material-icons">add</span>
+                                Create Course
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="courses-grid" id="courses-grid">
+                        <!-- Course cards populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Students View -->
+                <div id="students-view" class="view">
+                    <div class="page-header">
+                        <div class="page-header-left">
+                            <h1 class="page-title">Students</h1>
+                            <p class="page-subtitle">Manage student accounts and track progress</p>
+                        </div>
+                        <div class="page-header-right">
+                            <button class="btn btn-outline">
+                                <span class="material-icons">download</span>
+                                Export
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-card">
+                        <div class="table-header">
+                            <div class="table-search">
+                                <div class="search-input">
+                                    <span class="material-icons">search</span>
+                                    <input type="text" placeholder="Search students..." id="student-search">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-content">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Student</th>
+                                        <th>Email</th>
+                                        <th>Courses</th>
+                                        <th>Progress</th>
+                                        <th>Join Date</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="students-table-body">
+                                    <!-- Student rows populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Avatars View -->
+                <div id="avatars-view" class="view">
+                    <div class="page-header">
+                        <div class="page-header-left">
+                            <h1 class="page-title">AI Avatars</h1>
+                            <p class="page-subtitle">Create and manage AI-powered video avatars</p>
+                        </div>
+                        <div class="page-header-right">
+                            <button class="btn btn-primary" id="generate-avatar-btn">
+                                <span class="material-icons">smart_toy</span>
+                                Generate Avatar
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="avatar-management">
+                        <div class="avatar-selection-card">
+                            <div class="card-header">
+                                <h3 class="card-title">Choose Avatar</h3>
+                                <p class="card-subtitle">Select from our AI avatar library</p>
+                            </div>
+                            <div class="card-content">
+                                <div class="avatar-grid" id="avatar-grid">
+                                    <!-- Avatar options populated by JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="avatar-config-card">
+                            <div class="card-header">
+                                <h3 class="card-title">Configuration</h3>
+                                <p class="card-subtitle">Customize avatar settings</p>
+                            </div>
+                            <div class="card-content">
+                                <form class="avatar-form">
+                                    <div class="form-group">
+                                        <label class="form-label">Language</label>
+                                        <select class="form-control" id="avatar-language">
+                                            <option value="english">English</option>
+                                            <option value="spanish">Spanish</option>
+                                            <option value="french">French</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Voice Style</label>
+                                        <select class="form-control" id="avatar-voice">
+                                            <option value="professional">Professional</option>
+                                            <option value="casual">Casual</option>
+                                            <option value="enthusiastic">Enthusiastic</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Script</label>
+                                        <textarea class="form-control" id="avatar-script" rows="8" placeholder="Enter the script for your avatar..."></textarea>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="avatar-preview-card">
+                            <div class="card-header">
+                                <h3 class="card-title">Preview</h3>
+                                <p class="card-subtitle">Your generated avatar will appear here</p>
+                            </div>
+                            <div class="card-content">
+                                <div class="preview-container" id="avatar-preview">
+                                    <div class="preview-placeholder">
+                                        <span class="material-icons">play_circle_outline</span>
+                                        <p>Generate avatar to see preview</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics View -->
+                <div id="analytics-view" class="view">
+                    <div class="page-header">
+                        <div class="page-header-left">
+                            <h1 class="page-title">Analytics & Insights</h1>
+                            <p class="page-subtitle">Detailed performance metrics and learner analytics</p>
+                        </div>
+                        <div class="page-header-right">
+                            <button class="btn btn-outline">
+                                <span class="material-icons">download</span>
+                                Export Report
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="analytics-grid">
+                        <div class="chart-card">
+                            <div class="card-header">
+                                <h3 class="card-title">Student Progress Trends</h3>
+                            </div>
+                            <div class="card-content">
+                                <div class="chart-container" style="position: relative; height: 350px;">
+                                    <canvas id="progress-trends-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="stats-card">
+                            <div class="card-header">
+                                <h3 class="card-title">Top Performing Courses</h3>
+                            </div>
+                            <div class="card-content">
+                                <div class="performance-list" id="course-performance">
+                                    <!-- Performance items populated by JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Progress Modal -->
+        <div id="progress-modal" class="modal hidden">
+            <div class="modal-overlay"></div>
+            <div class="modal-content modal-progress">
+                <div class="modal-header">
+                    <h2 class="modal-title">Generating Avatar</h2>
+                </div>
+                <div class="modal-body">
+                    <div class="progress-container">
+                        <div class="progress-animation">
+                            <div class="spinner"></div>
+                        </div>
+                        <div class="progress-info">
+                            <h4 id="progress-status">Processing script...</h4>
+                            <p id="progress-detail">This may take a few moments</p>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Container -->
+        <div id="toast-container" class="toast-container"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
