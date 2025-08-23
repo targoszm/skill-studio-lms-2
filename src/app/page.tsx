@@ -6,17 +6,21 @@ declare global {
   interface Window {
     __MATDASH_BOOTED?: boolean;       // app.js loaded once
     __MATDASH_INLINE_DONE?: boolean;  // inline scripts executed once
+    __MATDASH_VENDOR_DONE?: boolean;  // vendor scripts loaded once
   }
 }
 
 /**
- * v0-safe MatDash loader (self-cleaning)
+ * v0‑safe MatDash loader (sequential vendor support)
  * - Fetch /matdash/index.html
- * - KEEP inline scripts (run them after app.js)
- * - Strip ALL <script> tags from fetched HTML (we'll run inlines ourselves)
- * - Before injecting: remove ANY old app.js/style elements (including ?v=2, ?v=3...)
- * - Inject ONE stylesheet and ONE script with a new version token
- * - Guard with globals so we don't re-run on hot/preview reloads
+ * - Collect:
+ *    a) external vendor scripts (script[src], EXCEPT our /matdash/app.js)
+ *    b) inline scripts (script without src)
+ * - Remove all <script> and <link rel="stylesheet"> in fetched HTML body
+ * - Self-clean any previous injected tags (any ?v=*)
+ * - Inject Google Fonts + ONE style.css
+ * - Load vendor scripts SEQUENTIALLY (once), then load ONE app.js (once),
+ *   then run inline scripts (once)
  */
 export default function Home() {
   const [html, setHtml] = useState<string>('');
@@ -24,44 +28,81 @@ export default function Home() {
   useEffect(() => {
     let cleaned = false;
 
-    const VERSION = '7'; // bump this if you ever need to hard-refresh caches
+    const VERSION = '8'; // bump if you need to invalidate cache
     const APP_JS = `/matdash/app.js?v=${VERSION}`;
     const APP_CSS = `/matdash/style.css?v=${VERSION}`;
 
+    // Helper to load a script src once, with cleanup of any prior duplicates
+    const loadScriptOnce = (src: string): Promise<void> => {
+      // remove any prior matching script nodes
+      document.querySelectorAll<HTMLScriptElement>(`script[src="${src}"]`).forEach((n) => n.remove());
+
+      return new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = src;
+        s.defer = true;
+        s.onload = () => resolve();
+        s.onerror = (e) => reject(e);
+        document.body.appendChild(s);
+      });
+    };
+
+    // Sequentially load an array of scripts
+    const loadScriptsSequentially = async (srcs: string[]) => {
+      for (const src of srcs) {
+        await loadScriptOnce(src);
+      }
+    };
+
     fetch('/matdash/index.html')
       .then((res) => res.text())
-      .then((raw) => {
+      .then(async (raw) => {
         if (cleaned) return;
 
         const doc = new DOMParser().parseFromString(raw, 'text/html');
 
-        // Collect inline scripts (no src). Remove ALL scripts in fetched HTML.
-        const inlineScripts: string[] = [];
-        doc.querySelectorAll('script').forEach((el) => {
-          const src = el.getAttribute('src');
-          if (!src && el.textContent && el.textContent.trim().length > 0) {
-            inlineScripts.push(el.textContent);
-          }
-          el.remove();
+        // 1) Collect vendor scripts (those with src), EXCLUDING our app.js
+        const vendorSrcs: string[] = [];
+        doc.querySelectorAll('script[src]').forEach((el) => {
+          const src = el.getAttribute('src') || '';
+          // normalize to absolute path when possible
+          const normalized = src.startsWith('http')
+            ? src
+            : src.startsWith('/')
+            ? src
+            : `/matdash/${src.replace(/^\.?\//, '')}`;
+
+          // exclude our main app.js (we inject with version)
+          if (normalized.includes('/matdash/app.js')) return;
+
+          // avoid duplicates in array
+          if (!vendorSrcs.includes(normalized)) vendorSrcs.push(normalized);
         });
 
-        // Remove <link rel="stylesheet"> in fetched HTML – we inject our own
+        // 2) Collect inline scripts (no src)
+        const inlineScripts: string[] = [];
+        doc.querySelectorAll('script:not([src])').forEach((el) => {
+          const code = el.textContent?.trim();
+          if (code) inlineScripts.push(code);
+        });
+
+        // 3) Remove ALL scripts & all stylesheet links from fetched HTML
+        doc.querySelectorAll('script').forEach((el) => el.remove());
         doc.querySelectorAll('link[rel="stylesheet"]').forEach((el) => el.remove());
 
+        // 4) Mount sanitized HTML
         const bodyHtml = doc?.body?.innerHTML ?? '';
         setHtml(bodyHtml);
 
-        // ---- Self-clean any previously injected or stale tags ----
-        // Remove any old matdash app.js (any version) + any tag that targeted /app.js at root.
+        // 5) Self-clean any previous injected tags (any version)
         document
           .querySelectorAll<HTMLScriptElement>('script[src*="/matdash/app.js"],script[src="/app.js"],script[data-matdash="app"]')
           .forEach((n) => n.remove());
-        // Remove any old matdash style (any version) + any root fallback
         document
           .querySelectorAll<HTMLLinkElement>('link[href*="/matdash/style.css"],link[href="/style.css"],link[data-matdash="style"]')
           .forEach((n) => n.remove());
 
-        // ----- Inject Google Fonts (icons + Roboto) -----
+        // 6) Inject Google Fonts (icons + Roboto) once
         const ensureHeadLink = (id: string, href: string) => {
           if (document.getElementById(id)) return;
           const link = document.createElement('link');
@@ -71,43 +112,53 @@ export default function Home() {
           document.head.appendChild(link);
         };
         ensureHeadLink('matdash-icons', 'https://fonts.googleapis.com/icon?family=Material+Icons');
-        ensureHeadLink('matdash-roboto', 'https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+        ensureHeadLink(
+          'matdash-roboto',
+          'https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap'
+        );
 
-        // ----- Inject ONE stylesheet for your app -----
+        // 7) Inject ONE stylesheet
         const css = document.createElement('link');
         css.rel = 'stylesheet';
         css.href = APP_CSS;
         css.setAttribute('data-matdash', 'style');
         document.head.appendChild(css);
 
-        // Helper: run inline scripts exactly once, after app.js is ready
+        // 8) Load vendor scripts (only once per preview session)
+        if (!window.__MATDASH_VENDOR_DONE) {
+          try {
+            await loadScriptsSequentially(vendorSrcs);
+            window.__MATDASH_VENDOR_DONE = true;
+          } catch (err) {
+            console.error('MatDash vendor script failed:', err);
+          }
+        }
+
+        // Helper to run inline scripts once
         const runInlineScriptsOnce = () => {
           if (window.__MATDASH_INLINE_DONE) return;
           try {
             document.dispatchEvent(new Event('DOMContentLoaded'));
-            inlineScripts.forEach((code) => {
+            for (const code of inlineScripts) {
               // eslint-disable-next-line no-new-func
               new Function(code)();
-            });
+            }
             window.__MATDASH_INLINE_DONE = true;
           } catch (err) {
             console.error('MatDash inline script error:', err);
           }
         };
 
-        // ----- Inject ONE script for your app (guard + cleanup ensured) -----
+        // 9) Load ONE app.js (then inline scripts)
         if (!window.__MATDASH_BOOTED) {
-          const s = document.createElement('script');
-          s.src = APP_JS;
-          s.defer = true;
-          s.setAttribute('data-matdash', 'app');
-          s.onload = () => {
+          try {
+            await loadScriptOnce(APP_JS);
             window.__MATDASH_BOOTED = true;
             runInlineScriptsOnce();
-          };
-          document.body.appendChild(s);
+          } catch (err) {
+            console.error('MatDash app.js failed:', err);
+          }
         } else {
-          // app.js already available from a prior load; just run inlines
           runInlineScriptsOnce();
         }
       })
