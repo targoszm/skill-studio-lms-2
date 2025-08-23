@@ -9,10 +9,11 @@ declare global {
 }
 
 /**
- * Robust MatDash loader for v0:
- * - fetch the HTML body from /matdash/index.html
- * - inject EXACTLY ONE stylesheet and EXACTLY ONE script
- * - guard against duplicate JS execution (prevents "already been declared")
+ * v0‑safe MatDash loader
+ * - Fetch /matdash/index.html
+ * - Strip ALL <script> and stylesheet <link> tags from the fetched HTML
+ * - Inject EXACTLY ONE stylesheet and EXACTLY ONE script
+ * - Guard re-injection with a global flag to avoid "already been declared"
  */
 export default function Home() {
   const [html, setHtml] = useState<string>('');
@@ -20,20 +21,30 @@ export default function Home() {
   useEffect(() => {
     let cleaned = false;
 
-    // 1) Load HTML
     fetch('/matdash/index.html')
       .then((res) => res.text())
       .then((raw) => {
         if (cleaned) return;
 
-        // Grab only the body so we don't duplicate <head>
+        // Parse the HTML
         const doc = new DOMParser().parseFromString(raw, 'text/html');
-        const bodyHtml = doc?.body?.innerHTML ?? raw;
+
+        // 1) Remove *all* <script> tags from the fetched HTML body
+        doc.querySelectorAll('script').forEach((el) => el.remove());
+
+        // 2) Remove any stylesheet links to avoid duplicate CSS (optional but safe)
+        doc
+          .querySelectorAll('link[rel="stylesheet"]')
+          .forEach((el) => el.remove());
+
+        const bodyHtml = doc?.body?.innerHTML ?? '';
+
+        // Put the sanitized HTML into the page
         setHtml(bodyHtml);
 
-        // 2) Ensure a single CSS
-        const cssHref = '/matdash/style.css?v=3';
-        if (!document.querySelector(`link[data-matdash="style"]`)) {
+        // 3) Ensure a single CSS
+        const cssHref = '/matdash/style.css?v=4';
+        if (!document.querySelector('link[data-matdash="style"]')) {
           const link = document.createElement('link');
           link.rel = 'stylesheet';
           link.href = cssHref;
@@ -41,16 +52,14 @@ export default function Home() {
           document.head.appendChild(link);
         }
 
-        // 3) Ensure a single JS with a global guard
+        // 4) Ensure a single JS (guard double-execution)
         if (!window.__MATDASH_BOOTED) {
-          // Avoid double-inject if a previous render started it
           if (!document.querySelector('script[data-matdash="app"]')) {
             const s = document.createElement('script');
-            s.src = '/matdash/app.js?v=3';
+            s.src = '/matdash/app.js?v=4';
             s.defer = true;
             s.setAttribute('data-matdash', 'app');
             s.onload = () => {
-              // Mark as booted to prevent any re-injection
               window.__MATDASH_BOOTED = true;
             };
             document.body.appendChild(s);
@@ -67,6 +76,7 @@ export default function Home() {
   return (
     <div
       style={{ minHeight: '100vh', width: '100vw' }}
+      // The HTML is *sanitized* (no scripts/links) and safe to mount
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );
