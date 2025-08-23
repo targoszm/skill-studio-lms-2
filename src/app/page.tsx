@@ -12,8 +12,8 @@ declare global {
  * v0‑safe MatDash loader
  * - Fetch /matdash/index.html
  * - Strip ALL <script> and stylesheet <link> tags from the fetched HTML
- * - Inject EXACTLY ONE stylesheet and EXACTLY ONE script
- * - Guard re-injection with a global flag to avoid "already been declared"
+ * - Inject Google Fonts (Material Icons + Roboto), ONE stylesheet, ONE script
+ * - Guard JS re-injection to avoid "already been declared"
  */
 export default function Home() {
   const [html, setHtml] = useState<string>('');
@@ -26,37 +26,48 @@ export default function Home() {
       .then((raw) => {
         if (cleaned) return;
 
-        // Parse the HTML
+        // Parse the HTML we ship in public/matdash/
         const doc = new DOMParser().parseFromString(raw, 'text/html');
 
-        // 1) Remove *all* <script> tags from the fetched HTML body
+        // Remove all scripts and stylesheet links from the fetched HTML body
         doc.querySelectorAll('script').forEach((el) => el.remove());
-
-        // 2) Remove any stylesheet links to avoid duplicate CSS (optional but safe)
-        doc
-          .querySelectorAll('link[rel="stylesheet"]')
-          .forEach((el) => el.remove());
+        doc.querySelectorAll('link[rel="stylesheet"]').forEach((el) => el.remove());
 
         const bodyHtml = doc?.body?.innerHTML ?? '';
-
-        // Put the sanitized HTML into the page
         setHtml(bodyHtml);
 
-        // 3) Ensure a single CSS
-        const cssHref = '/matdash/style.css?v=4';
+        // ----- Inject Google Fonts (icons + Roboto) -----
+        const ensureHeadLink = (id: string, href: string) => {
+          if (document.getElementById(id)) return;
+          const link = document.createElement('link');
+          link.id = id;
+          link.rel = 'stylesheet';
+          link.href = href;
+          document.head.appendChild(link);
+        };
+        ensureHeadLink(
+          'matdash-icons',
+          'https://fonts.googleapis.com/icon?family=Material+Icons'
+        );
+        ensureHeadLink(
+          'matdash-roboto',
+          'https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap'
+        );
+
+        // ----- Inject ONE stylesheet for your app -----
         if (!document.querySelector('link[data-matdash="style"]')) {
           const link = document.createElement('link');
           link.rel = 'stylesheet';
-          link.href = cssHref;
+          link.href = '/matdash/style.css?v=5';
           link.setAttribute('data-matdash', 'style');
           document.head.appendChild(link);
         }
 
-        // 4) Ensure a single JS (guard double-execution)
+        // ----- Inject ONE script for your app (guarded) -----
         if (!window.__MATDASH_BOOTED) {
           if (!document.querySelector('script[data-matdash="app"]')) {
             const s = document.createElement('script');
-            s.src = '/matdash/app.js?v=4';
+            s.src = '/matdash/app.js?v=5';
             s.defer = true;
             s.setAttribute('data-matdash', 'app');
             s.onload = () => {
@@ -76,7 +87,7 @@ export default function Home() {
   return (
     <div
       style={{ minHeight: '100vh', width: '100vw' }}
-      // The HTML is *sanitized* (no scripts/links) and safe to mount
+      // sanitized HTML (no scripts/links) – safe to mount
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );
