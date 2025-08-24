@@ -28,9 +28,9 @@ export default function EditCoursePage() {
 
   if (!initial) return notFound();
 
-  const [title, setTitle] = useState(initial.title);
-  const [desc, setDesc] = useState(initial.description);
-  const [cat, setCat] = useState(initial.category);
+  const [title, setTitle] = useState<string>(initial.title);
+  const [desc, setDesc] = useState<string>(initial.description);
+  const [cat, setCat] = useState<string>(initial.category);
 
   return (
     <div style={{ display: 'grid', gap: 16, maxWidth: 900 }}>
