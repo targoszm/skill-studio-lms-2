@@ -85,6 +85,15 @@
       .login-header{ padding:20px 20px 6px; }
       .login-body{ padding:14px 20px 20px; }
     }
+
+    .form-control.error{
+      border-color:#ef4444;
+    }
+    .error-message{
+      color:#ef4444;
+      font-size:12px;
+      margin-top:4px;
+    }
   </style>
 </head>
 <body>
@@ -140,8 +149,24 @@
       };
       form.addEventListener('submit', function (e) {
         e.preventDefault();
-        const email = document.getElementById('email').value.trim().toLowerCase();
-        const pwd = document.getElementById('password').value;
+        const emailInput = document.getElementById('email');
+        const pwdInput = document.getElementById('password');
+        const email = emailInput.value.trim().toLowerCase();
+        const pwd = pwdInput.value;
+        let hasError = false;
+        if (!email) {
+          showError(emailInput, 'Email is required');
+          hasError = true;
+        } else {
+          clearError(emailInput);
+        }
+        if (!pwd) {
+          showError(pwdInput, 'Password is required');
+          hasError = true;
+        } else {
+          clearError(pwdInput);
+        }
+        if (hasError) return;
         if (!profiles[email] || pwd !== 'password') {
           alert('Invalid credentials. For the demo, use your assigned email with password: password');
           return;
@@ -151,6 +176,25 @@
         storage.setItem('profileKey', key);
         window.location.href = '/matdash/index.html';
       });
+
+      function showError(input, message) {
+        input.classList.add('error');
+        let err = input.nextElementSibling;
+        if (!err || !err.classList.contains('error-message')) {
+          err = document.createElement('div');
+          err.className = 'error-message';
+          input.insertAdjacentElement('afterend', err);
+        }
+        err.textContent = message;
+      }
+
+      function clearError(input) {
+        input.classList.remove('error');
+        const err = input.nextElementSibling;
+        if (err && err.classList.contains('error-message')) {
+          err.remove();
+        }
+      }
     })();
   </script>
 </body>
