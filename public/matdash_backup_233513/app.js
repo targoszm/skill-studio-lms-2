@@ -1547,22 +1547,39 @@ document.addEventListener('click', (e) => {
 });
 
 console.log('MatDash LMS application loaded successfully');
-// ---- Skill Studio: load color overrides last (do not remove) ----
+// ===== Login bootstrap & simple view navigation fallback =====
 (function(){
-  var id='skill-overrides-css';
-  if(!document.getElementById(id)){
-    var l=document.createElement('link'); l.rel='stylesheet'; l.href='overrides.css'; l.id=id;
-    document.head.appendChild(l);
+  function setActiveView(id){
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    var el = document.getElementById(id + '-view');
+    if (el) el.classList.add('active');
+    var crumb = document.getElementById('current-page');
+    if (crumb){
+      var labelMap = { dashboard: 'Dashboard', 'create-course': 'Create course', templates: 'Templates', students: 'Students', avatars: 'AI Avatars', analytics: 'Analytics' };
+      crumb.textContent = labelMap[id] || id;
+    }
   }
-})();
-// ---- Skill Studio: load color overrides last (do not remove) ----
-(function () {
-  var id = 'skill-overrides-css';
-  if (!document.getElementById(id)) {
-    var l = document.createElement('link');
-    l.rel = 'stylesheet';
-    l.href = 'overrides.css';
-    l.id = id;
-    document.head.appendChild(l);
-  }
+
+  window.addEventListener('DOMContentLoaded', function(){
+    var wants = new URL(window.location.href).searchParams.get('view');
+    var authed = sessionStorage.getItem('matdash_auth');
+    var initial = wants || (authed ? 'dashboard' : 'login');
+    if (window.lms && typeof window.lms.navigateToView === 'function') {
+      window.lms.navigateToView(initial);
+    } else {
+      setActiveView(initial);
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var t = e.target.closest('#login-submit');
+    if (!t) return;
+    e.preventDefault();
+    sessionStorage.setItem('matdash_auth', 'demo');     // very lightweight demo flag
+    if (window.lms && typeof window.lms.navigateToView === 'function') {
+      window.lms.navigateToView('dashboard');
+    } else {
+      setActiveView('dashboard');
+    }
+  });
 })();

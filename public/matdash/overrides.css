@@ -1,0 +1,128 @@
+/* Skill Studio – final brand overrides (colors only, no layout) */
+:root{
+  --brand-primary:#5C4ECD;
+  --brand-primary-strong:#5D2DE6;
+  --brand-primary-rgb:92,78,205;
+  --brand-on-primary:#fff;
+}
+
+/* Buttons */
+.btn-primary{
+  background:var(--brand-primary)!important; border-color:var(--brand-primary)!important; color:var(--brand-on-primary)!important;
+}
+.btn-primary:hover,.btn-primary:focus,.btn-primary:active{
+  background:var(--brand-primary-strong)!important; border-color:var(--brand-primary-strong)!important; color:var(--brand-on-primary)!important;
+}
+.btn-outline{
+  background:transparent!important; border-color:var(--brand-primary)!important; color:var(--brand-primary)!important;
+}
+.btn-outline:hover,.btn-outline:focus,.btn-outline:active{
+  border-color:var(--brand-primary-strong)!important; color:var(--brand-primary-strong)!important; background:rgba(var(--brand-primary-rgb),.06)!important;
+}
+
+/* Sidebar nav */
+.sidebar .nav-link{ color:#111827!important; }
+.sidebar .nav-link:hover,.sidebar .nav-link:focus{
+  background:rgba(var(--brand-primary-rgb),.12)!important; color:var(--brand-primary)!important;
+}
+.sidebar .nav-link:hover .material-icons,.sidebar .nav-link:focus .material-icons{ color:var(--brand-primary)!important; }
+.sidebar .nav-item.active>.nav-link{ background:var(--brand-primary)!important; color:#fff!important; }
+.sidebar .nav-item.active>.nav-link .material-icons{ color:#fff!important; }
+.sidebar .nav-link .nav-badge{ background:rgba(var(--brand-primary-rgb),.10)!important; color:var(--brand-primary)!important; }
+.sidebar .nav-item.active>.nav-link .nav-badge{ background:#fff!important; color:var(--brand-primary)!important; }
+
+/* Wizard stepper */
+/* Active step bubble */
+.step.active .step-number,.step.is-active .step-number,
+.wizard-step.active .step-number,.wizard-step.is-active .step-number{
+  background:var(--brand-primary)!important; color:#fff!important; border:none!important; box-shadow:none!important;
+}
+/* Container accents when active */
+.step.active,.step.is-active,.wizard-step.active,.wizard-step.is-active{
+  border-color:var(--brand-primary)!important; box-shadow:0 0 0 3px rgba(var(--brand-primary-rgb),.12)!important; color:var(--brand-primary)!important;
+}
+/* Completed step bubble (purple, no halo) */
+.step.complete .step-number,.step.is-complete .step-number,
+.wizard-step.complete .step-number,.wizard-step.is-complete .step-number,
+.step.success .step-number,.wizard-step.success .step-number,
+.step[data-complete="true"] .step-number{
+  background:var(--brand-primary)!important; color:#fff!important; border:none!important; box-shadow:none!important;
+}
+/* If the theme paints completed/“success” steps green, neutralize container tint too */
+.step.complete,.wizard-step.complete,.step.success,.wizard-step.success{
+  border-color:var(--brand-primary)!important; color:var(--brand-primary)!important;
+}
+
+/* Toast/notification: make accent + icon purple (your screenshot shows green) */
+.toast,.toast-info,.toast-success,.alert,.alert-info,.alert-success,.notification,
+[class*="toast"],[class*="alert"]{ border-left-color:var(--brand-primary)!important; }
+.toast .material-icons,.alert .material-icons,[class*="toast"] .material-icons,[class*="alert"] .material-icons{
+  color:var(--brand-primary)!important;
+}
+/* === Fix remaining blue/green accents (nav ::before + completed step) === */
+
+/* 1) Sidebar active pill sometimes renders a blue ::before bar */
+.sidebar .nav-item.active > .nav-link::before,
+.sidebar .nav-link.active::before,
+.nav-item.active > a.nav-link::before {
+  background: var(--brand-primary) !important;
+}
+
+/* 2) Completed step bubble can be green in some themes — force purple */
+.step.completed .step-number,
+.step.is-completed .step-number,
+.step--completed .step-number,
+.wizard-step.completed .step-number,
+.wizard-step.is-completed .step-number,
+.wizard-step--completed .step-number,
+/* catch-all: any class containing 'complete' on step containers */
+.step[class*="complete"] .step-number,
+.wizard-step[class*="complete"] .step-number {
+  background: var(--brand-primary) !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+/* Optional: if the connector line after a completed step inherits green */
+.step.completed::after,
+.step.is-completed::after,
+.step--completed::after,
+.wizard-step.completed::after,
+.wizard-step.is-completed::after,
+.wizard-step--completed::after {
+  background: rgba(var(--brand-primary-rgb), .30) !important;
+  border-color: var(--brand-primary) !important;
+}
+/* Small lift */
+.btn:hover{ box-shadow:0 4px 10px rgba(0,0,0,.08); }
+
+/* === Brand polish: logo tile + incomplete connector, final === */
+/* Make the sidebar logo tile purple (keep existing markup) */
+.logo-icon {
+  background: var(--brand-primary) !important;
+  color: #fff !important;
+}
+/* If there is an SVG/icon inside, force it white */
+.logo-icon svg *, .logo-icon .material-icons { fill:#fff !important; color:#fff !important; }
+
+/* Incomplete connector bars in the stepper were still blue — neutralize to purple tint */
+.step::after,
+.wizard-step::after {
+  background: rgba(var(--brand-primary-rgb), .30) !important;
+  border-color: rgba(var(--brand-primary-rgb), .30) !important;
+}
+/* Replace metric icons with brand logo */
+.metric-icon {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.metric-icon .metric-logo {
+  width:28px;
+  height:28px;
+  object-fit:contain;
+}
+
+/* Metric tiles: render brand logo cleanly */
+.metric-icon { display:flex; align-items:center; justify-content:center; }
+.metric-icon .metric-logo { width:28px; height:28px; object-fit:contain; }

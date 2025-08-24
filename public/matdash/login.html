@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sign in · Skill Studio AI</title>
+
+  <!-- Fonts & Icons -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+
+  <!-- App styles -->
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="overrides.css" />
+
+  <link rel="icon" href="/favicon.ico?v=4" />
+
+  <style>
+    :root{
+      --brand-primary:#5C4ECD;
+      --brand-primary-strong:#5D2DE6;
+      --text-1:#111827;
+      --text-2:#6B7280;
+      --border:#E5E7EB;
+      --bg:#F8FAFC;
+    }
+
+    html,body{height:100%}
+    body{
+      display:flex; align-items:center; justify-content:center;
+      margin:0; background:var(--bg);
+      font-family: Inter, -apple-system, system-ui, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+
+    .login-wrap{ width:100%; max-width:440px; padding:16px; }
+    .login-card{
+      background:#fff; border:1px solid var(--border);
+      border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.06);
+    }
+
+    .login-header{
+      padding:24px 24px 8px; display:flex; align-items:center; gap:12px;
+    }
+    .login-logo{
+      width:36px; height:36px; border-radius:10px;
+      background:var(--brand-primary); display:flex; align-items:center; justify-content:center;
+    }
+    .login-logo img{
+      width:22px; height:22px; object-fit:contain;
+      /* Force white glyph regardless of original logo colors */
+      filter: brightness(0) invert(1);
+    }
+
+    .login-title{ font-size:20px; font-weight:600; color:var(--text-1); }
+    .hint{ font-size:12px; color:var(--text-2); }
+
+    .login-sub{ padding:0 24px 8px; color:var(--text-2); }
+    .login-body{ padding:16px 24px 24px; display:flex; flex-direction:column; gap:12px; }
+
+    .form-label{ font-size:13px; color:#374151; margin-bottom:6px; display:block; }
+    .form-control{
+      width:100%; border:1px solid #CBD5E1; background:#F9FAFB;
+      border-radius:12px; padding:12px 14px; outline:none;
+      transition:border-color .15s ease, box-shadow .15s ease, background .15s ease;
+    }
+    .form-control:focus{
+      border-color:var(--brand-primary);
+      background:#fff; box-shadow:0 0 0 3px rgba(92,78,205,.12);
+    }
+
+    .row{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:6px; margin-bottom:10px; }
+    .btn-full{ width:100%; display:inline-flex; align-items:center; justify-content:center; gap:8px; }
+    .btn{ cursor:pointer; }
+    .btn-primary{
+      background:var(--brand-primary); color:#fff; border:none; border-radius:12px; padding:12px 16px;
+      font-weight:600;
+      transition:background .15s ease, box-shadow .15s ease;
+    }
+    .btn-primary:hover{ background:var(--brand-primary-strong); }
+    .btn-primary:active{ transform:translateY(0.5px); }
+
+    /* Accessibility: bigger tap targets on mobile */
+    @media (max-width:480px){
+      .login-card{ border-radius:14px; }
+      .login-header{ padding:20px 20px 6px; }
+      .login-body{ padding:14px 20px 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="login-logo"><img src="/matdash/Logo2.svg" alt="Skill Studio AI"></div>
+        <div>
+          <div class="login-title">Sign in to Skill Studio AI</div>
+          <div class="hint">Demo</div>
+        </div>
+      </div>
+
+      <div class="login-sub">Please use your credentials provided to login</div>
+
+      <div class="login-body">
+        <form id="login-form" novalidate>
+          <label class="form-label" for="email">Email</label>
+          <input class="form-control" id="email" type="email" placeholder="you@company.com" required />
+
+          <label class="form-label" for="password">Password</label>
+          <input class="form-control" id="password" type="password" placeholder="********" required />
+
+          <div class="row">
+            <label class="hint"><input id="remember" type="checkbox" /> Remember me</label>
+            <a class="hint" href="#" onclick="alert('Demo only');return false;">Forgot password?</a>
+          </div>
+
+          <button class="btn btn-primary btn-full" type="submit">
+            <span class="material-icons">login</span> Sign In
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Guard: if already logged in, go straight to dashboard
+    (function(){
+      try{
+        var key = localStorage.getItem('profileKey') || sessionStorage.getItem('profileKey');
+        if(key){ window.location.replace('/matdash/index.html'); return; }
+      }catch(e){}
+    })();
+
+    // Minimal demo auth
+    (function () {
+      const form = document.getElementById('login-form');
+      const profiles = {
+        'advise@skillstudio.ai': 'advise',
+        'doc@skillstudio.ai': 'doc',
+        'grow@skillstudio.ai': 'grow'
+      };
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const email = document.getElementById('email').value.trim().toLowerCase();
+        const pwd = document.getElementById('password').value;
+        if (!profiles[email] || pwd !== 'password') {
+          alert('Invalid credentials. For the demo, use your assigned email with password: password');
+          return;
+        }
+        const key = profiles[email];
+        const storage = document.getElementById('remember').checked ? localStorage : sessionStorage;
+        storage.setItem('profileKey', key);
+        window.location.href = '/matdash/index.html';
+      });
+    })();
+  </script>
+</body>
+</html>
