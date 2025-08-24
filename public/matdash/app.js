@@ -5,7 +5,7 @@ class MatDashLMS {
     constructor() {
         this.currentView = 'dashboard';
         this.currentStep = 1;
-        this.maxStep = 9;
+        this.maxStep = 10;
         this.isDarkMode = false;
         this.charts = {};
         this.selectedAvatar = null;
@@ -811,35 +811,36 @@ class MatDashLMS {
                     <div class="step-content active" id="step-9">
                         <div class="form-card">
                             <div class="card-header">
-                                <h3 class="card-title">Publish Course</h3>
-                                <p class="card-subtitle">Configure sharing and distribution settings</p>
+                                <h3 class="card-title">Avatar Preview</h3>
+                                <p class="card-subtitle">Review your AI-generated avatar before publishing</p>
                             </div>
                             <div class="card-content">
-                                <div class="form-group">
-                                    <label class="form-label">Course Visibility</label>
-                                    <select class="form-control">
-                                        <option>Public - Available to all students</option>
-                                        <option>Private - Invite only</option>
-                                        <option>Draft - Not visible to students</option>
-                                    </select>
+                                <div id="avatar-preview" style="background: #000; border-radius: var(--radius-lg); aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; color: white; margin-bottom: var(--space-lg);">
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 48px; margin-bottom: var(--space-md);">▶️</div>
+                                        <p>Avatar preview will appear here after generation</p>
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="form-label">Pricing</label>
-                                    <select class="form-control">
-                                        <option>Free</option>
-                                        <option>Paid - Set price</option>
-                                        <option>Subscription based</option>
-                                    </select>
+                                <div style="display: flex; gap: var(--space-md); justify-content: center;">
+                                    <button class="btn btn-primary" onclick="lms.nextStep()">Continue</button>
                                 </div>
-                                <div class="form-group">
-                                    <label class="form-label">Course Tags</label>
-                                    <input type="text" class="form-control" placeholder="Enter tags separated by commas">
-                                </div>
-                                <div style="background: var(--surface-hover); padding: var(--space-lg); border-radius: var(--radius-lg); margin-top: var(--space-lg);">
-                                    <h4>🎉 Ready to Publish!</h4>
-                                    <p style="color: var(--text-secondary); margin: var(--space-sm) 0;">Your course is ready to be published. Students will be able to enroll and start learning immediately.</p>
-                                    <button class="btn btn-primary" style="margin-top: var(--space-md);">Publish Course</button>
-                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                break;
+
+            case 10:
+                stepHTML = `
+                    <div class="step-content active" id="step-10">
+                        <div class="form-card">
+                            <div class="card-header">
+                                <h3 class="card-title">Publish Avatar</h3>
+                                <p class="card-subtitle">Make your avatar available for courses</p>
+                            </div>
+                            <div class="card-content" style="text-align: center;">
+                                <p style="margin-bottom: var(--space-lg);">Your avatar is ready to be published.</p>
+                                <button class="btn btn-primary">Publish Avatar</button>
                             </div>
                         </div>
                     </div>
@@ -962,7 +963,7 @@ class MatDashLMS {
         
         if (nextBtn) {
             if (this.currentStep === this.maxStep) {
-                nextBtn.innerHTML = 'Publish <span class="material-icons">publish</span>';
+                nextBtn.innerHTML = 'Publish Avatar <span class="material-icons">publish</span>';
             } else {
                 nextBtn.innerHTML = 'Next <span class="material-icons">arrow_forward</span>';
             }
@@ -1425,6 +1426,9 @@ class MatDashLMS {
                 } else {
                     setTimeout(() => {
                         this.closeModal('progress-modal');
+                        this.currentStep++;
+                        this.updateWizardStep();
+                        this.renderWizardContent();
                         this.showAvatarPreview();
                         this.showToast('success', 'Avatar Generated', 'Your AI avatar video has been generated successfully!');
                     }, 1000);
@@ -1547,14 +1551,6 @@ document.addEventListener('click', (e) => {
 });
 
 console.log('MatDash LMS application loaded successfully');
-// ---- Skill Studio: load color overrides last (do not remove) ----
-(function(){
-  var id='skill-overrides-css';
-  if(!document.getElementById(id)){
-    var l=document.createElement('link'); l.rel='stylesheet'; l.href='overrides.css'; l.id=id;
-    document.head.appendChild(l);
-  }
-})();
 // ---- Skill Studio: load color overrides last (do not remove) ----
 (function () {
   var id = 'skill-overrides-css';
