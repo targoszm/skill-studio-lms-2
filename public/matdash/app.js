@@ -11,6 +11,7 @@ class MatDashLMS {
         this.selectedAvatar = null;
         this.isInitialized = false;
         this.courseData = {};
+        this.selectedCourseId = null;
         
         // Application data from provided JSON
         this.data = {
@@ -226,6 +227,24 @@ class MatDashLMS {
         this.init();
     }
 
+    // --- MindCompass CSS dynamic loader ---
+    loadMindCompassStyle() {
+        if (!document.getElementById('mindcompass-style')) {
+            const link = document.createElement('link');
+            link.id = 'mindcompass-style';
+            link.rel = 'stylesheet';
+            link.href = 'mindcompass.css';
+            document.head.appendChild(link);
+        }
+    }
+
+    unloadMindCompassStyle() {
+        const link = document.getElementById('mindcompass-style');
+        if (link) {
+            link.remove();
+        }
+    }
+
     // Initialize Application
     init() {
         console.log('Initializing MatDash LMS...');
@@ -284,12 +303,19 @@ class MatDashLMS {
 
     navigateToView(viewName) {
         console.log(`Navigating to: ${viewName}`);
-        
+
+        // Toggle MindCompass stylesheet based on destination view
+        if (viewName === 'course-view') {
+            this.loadMindCompassStyle();
+        } else {
+            this.unloadMindCompassStyle();
+        }
+
         // Update navigation state
         document.querySelectorAll('.nav-item').forEach(item => {
             item.classList.remove('active');
         });
-        
+
         const activeNavItem = document.querySelector(`[data-view="${viewName}"]`);
         if (activeNavItem) {
             activeNavItem.classList.add('active');
@@ -307,19 +333,37 @@ class MatDashLMS {
             view.classList.remove('active');
         });
 
-        const targetView = document.getElementById(`${viewName}-view`);
-        if (targetView) {
-            targetView.classList.add('active');
-            this.currentView = viewName;
-            
-            // Load view-specific content
+        // Find or create target view
+        let targetView =
+            document.getElementById(`${viewName}-view`) ||
+            document.getElementById(viewName);
+
+        let created = false;
+        if (!targetView && typeof this.loadViewContent === 'function') {
             this.loadViewContent(viewName);
-            
-            // Close sidebar on mobile
-            const sidebar = document.getElementById('sidebar');
-            if (sidebar) {
-                sidebar.classList.remove('open');
-            }
+            created = true;
+            targetView =
+                document.getElementById(`${viewName}-view`) ||
+                document.getElementById(viewName);
+        }
+
+        if (!targetView) {
+            console.warn(`[MatDash] Missing view container. Expected id="#${viewName}-view" or "#${viewName}"`);
+            return;
+        }
+
+        targetView.classList.add('active');
+        this.currentView = viewName;
+
+        // Load view-specific content for existing views
+        if (!created && typeof this.loadViewContent === 'function') {
+            this.loadViewContent(viewName);
+        }
+
+        // Close sidebar on mobile
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) {
+            sidebar.classList.remove('open');
         }
     }
 
@@ -345,6 +389,9 @@ class MatDashLMS {
                 break;
             case 'analytics':
                 this.renderAnalytics();
+                break;
+            case 'course-view':
+                this.renderCourseView();
                 break;
         }
     }
@@ -1071,8 +1118,8 @@ class MatDashLMS {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const courseId = btn.getAttribute('data-course-id');
-                const course = this.data.courses.find(c => c.id === courseId);
-                this.showToast('info', 'View Course', `Viewing: ${course.title}`);
+                this.selectedCourseId = courseId;
+                this.navigateToView('course-view');
             });
         });
     }
@@ -1269,6 +1316,43 @@ class MatDashLMS {
         `).join('');
 
         performanceContainer.innerHTML = performanceHTML;
+    }
+
+    // Course View Rendering
+    renderCourseView() {
+        let container = document.getElementById('course-view-view') || document.getElementById('course-view');
+        if (!container) {
+            const main = document.getElementById('main-content') || document.body;
+            container = document.createElement('div');
+            container.id = 'course-view';
+            container.className = 'view';
+            main.appendChild(container);
+            console.warn('[MatDash] Created fallback #course-view container');
+        }
+
+        const id = this.selectedCourseId || '(unknown)';
+        container.innerHTML = `
+            <div class="course-view-wrapper">
+                <div class="course-header">
+                    <h2>Course Preview</h2>
+                    <p>Course ID: <strong>${id}</strong></p>
+                </div>
+                <div class="course-body">
+                    <div class="card" style="padding: var(--space-lg);">
+                        <p>This is the Course View. MindCompass styles are active.</p>
+                        <button class="btn" id="back-to-courses">Back to Courses</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        const backBtn = container.querySelector('#back-to-courses');
+        if (backBtn) {
+            backBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.navigateToView('courses');
+            });
+        }
     }
 
     // Event Listeners Setup
@@ -1506,8 +1590,10 @@ class MatDashLMS {
     }
 }
 
-// Initialize the application
-const lms = new MatDashLMS();
+// Initialize the application (idempotent boot)
+window.__matdash = window.__matdash || {};
+window.__matdash.lms = window.__matdash.lms || new MatDashLMS();
+const lms = window.__matdash.lms;
 
 // Global functions for inline event handlers
 window.lms = lms;
@@ -1545,14 +1631,6 @@ document.addEventListener('click', (e) => {
 });
 
 console.log('MatDash LMS application loaded successfully');
-// ---- Skill Studio: load color overrides last (do not remove) ----
-(function(){
-  var id='skill-overrides-css';
-  if(!document.getElementById(id)){
-    var l=document.createElement('link'); l.rel='stylesheet'; l.href='overrides.css'; l.id=id;
-    document.head.appendChild(l);
-  }
-})();
 // ---- Skill Studio: load color overrides last (do not remove) ----
 (function () {
   var id = 'skill-overrides-css';
