@@ -24,6 +24,11 @@ export default function AdminProfilePage() {
     const load = async () => {
       setLoading(true);
       setError('');
+      if (!supabase) {
+        setError('Supabase client not configured');
+        setLoading(false);
+        return;
+      }
       const {
         data: { user },
         error,
@@ -79,7 +84,7 @@ export default function AdminProfilePage() {
   }, [router]);
 
   const onSave = async () => {
-    if (!profile) return;
+    if (!profile || !supabase) return;
     setSaving(true);
     setError('');
     const { error } = await supabase
@@ -91,6 +96,7 @@ export default function AdminProfilePage() {
   };
 
   const onSignOut = async () => {
+    if (!supabase) return;
     await supabase.auth.signOut();
     router.push('/');
   };
