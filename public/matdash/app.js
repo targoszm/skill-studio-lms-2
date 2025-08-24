@@ -5,7 +5,7 @@ class MatDashLMS {
     constructor() {
         this.currentView = 'dashboard';
         this.currentStep = 1;
-        this.maxStep = 9;
+        this.maxStep = 8;
         this.isDarkMode = false;
         this.charts = {};
         this.selectedAvatar = null;
@@ -585,20 +585,64 @@ class MatDashLMS {
                     <div class="step-content active" id="step-2">
                         <div class="form-card">
                             <div class="card-header">
-                                <h3 class="card-title">Choose Your AI Avatar</h3>
-                                <p class="card-subtitle">Select an AI avatar that will present your course content</p>
+                                <h3 class="card-title">Avatar Setup</h3>
+                                <p class="card-subtitle">Select an AI avatar and configure generation settings</p>
                             </div>
                             <div class="card-content">
-                                <div class="avatar-grid" id="wizard-avatar-grid">
-                                    ${this.data.avatars.map(avatar => `
-                                        <div class="avatar-option ${this.selectedAvatar?.id === avatar.id ? 'selected' : ''}" data-avatar-id="${avatar.id}">
-                                            <img src="${avatar.thumbnail}" alt="${avatar.name}">
-                                            <div class="avatar-info">
-                                                <div class="avatar-name">${avatar.name}</div>
-                                                <div class="avatar-style">${avatar.style}</div>
-                                            </div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg);">
+                                    <div>
+                                        <h4>Choose Your AI Avatar</h4>
+                                        <div class="avatar-grid" id="wizard-avatar-grid">
+                                            ${this.data.avatars.map(avatar => `
+                                                <div class="avatar-option ${this.selectedAvatar?.id === avatar.id ? 'selected' : ''}" data-avatar-id="${avatar.id}">
+                                                    <img src="${avatar.thumbnail}" alt="${avatar.name}">
+                                                    <div class="avatar-info">
+                                                        <div class="avatar-name">${avatar.name}</div>
+                                                        <div class="avatar-style">${avatar.style}</div>
+                                                    </div>
+                                                </div>
+                                            `).join('')}
                                         </div>
-                                    `).join('')}
+                                    </div>
+                                    <div>
+                                        <h4>Selected Avatar</h4>
+                                        <div id="selected-avatar-preview" style="text-align: center; padding: var(--space-lg);">
+                                            ${this.selectedAvatar ? `
+                                                <img src="${this.selectedAvatar.thumbnail}" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin-bottom: var(--space-md);">
+                                                <h5>${this.selectedAvatar.name}</h5>
+                                                <p style="color: var(--text-secondary);">${this.selectedAvatar.style}</p>
+                                            ` : `
+                                                <div style="color: var(--text-secondary);">
+                                                    <div style="font-size: 48px; margin-bottom: var(--space-md);">👤</div>
+                                                    <p>No avatar selected</p>
+                                                </div>
+                                            `}
+                                        </div>
+                                        <h4>Generation Settings</h4>
+                                        <div class="form-group">
+                                            <label class="form-label">Voice Style</label>
+                                            <select class="form-control">
+                                                <option>Professional</option>
+                                                <option>Conversational</option>
+                                                <option>Enthusiastic</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Language</label>
+                                            <select class="form-control">
+                                                <option>English</option>
+                                                <option>Spanish</option>
+                                                <option>French</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Script</label>
+                                            <textarea class="form-control" id="avatar-script" rows="4" placeholder="Enter the script for your avatar..."></textarea>
+                                        </div>
+                                        <div style="text-align: center; margin-top: var(--space-lg);">
+                                            <button class="btn btn-primary" onclick="lms.generateAvatar()">Generate Avatar Video</button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -757,60 +801,6 @@ class MatDashLMS {
                     <div class="step-content active" id="step-8">
                         <div class="form-card">
                             <div class="card-header">
-                                <h3 class="card-title">Generate AI Avatar</h3>
-                                <p class="card-subtitle">Create your AI-powered video presentation</p>
-                            </div>
-                            <div class="card-content">
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg);">
-                                    <div>
-                                        <h4>Selected Avatar</h4>
-                                        <div style="text-align: center; padding: var(--space-lg);">
-                                            ${this.selectedAvatar ? `
-                                                <img src="${this.selectedAvatar.thumbnail}" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin-bottom: var(--space-md);">
-                                                <h5>${this.selectedAvatar.name}</h5>
-                                                <p style="color: var(--text-secondary);">${this.selectedAvatar.style}</p>
-                                            ` : `
-                                                <div style="color: var(--text-secondary);">
-                                                    <div style="font-size: 48px; margin-bottom: var(--space-md);">👤</div>
-                                                    <p>No avatar selected</p>
-                                                </div>
-                                            `}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <h4>Generation Settings</h4>
-                                        <div class="form-group">
-                                            <label class="form-label">Voice Style</label>
-                                            <select class="form-control">
-                                                <option>Professional</option>
-                                                <option>Conversational</option>
-                                                <option>Enthusiastic</option>
-                                            </select>
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label">Language</label>
-                                            <select class="form-control">
-                                                <option>English</option>
-                                                <option>Spanish</option>
-                                                <option>French</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div style="text-align: center; margin-top: var(--space-lg);">
-                                    <button class="btn btn-primary" onclick="lms.generateAvatar()">Generate Avatar Video</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                break;
-
-            case 9:
-                stepHTML = `
-                    <div class="step-content active" id="step-9">
-                        <div class="form-card">
-                            <div class="card-header">
                                 <h3 class="card-title">Publish Course</h3>
                                 <p class="card-subtitle">Configure sharing and distribution settings</p>
                             </div>
@@ -881,6 +871,14 @@ class MatDashLMS {
                 const avatarId = option.getAttribute('data-avatar-id');
                 this.selectedAvatar = this.data.avatars.find(a => a.id === avatarId);
                 this.showToast('success', 'Avatar Selected', `${this.selectedAvatar.name} selected`);
+                const preview = document.getElementById('selected-avatar-preview');
+                if (preview && this.selectedAvatar) {
+                    preview.innerHTML = `
+                        <img src="${this.selectedAvatar.thumbnail}" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin-bottom: var(--space-md);">
+                        <h5>${this.selectedAvatar.name}</h5>
+                        <p style="color: var(--text-secondary);">${this.selectedAvatar.style}</p>
+                    `;
+                }
             });
         });
     }

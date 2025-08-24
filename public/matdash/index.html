@@ -227,7 +227,7 @@
           <div class="page-header">
             <div class="page-header-left">
               <h1 class="page-title">Create New Course</h1>
-              <p class="page-subtitle">Follow the 9-step wizard to create your professional course</p>
+                <p class="page-subtitle">Follow the 8-step wizard to create your professional course</p>
             </div>
           </div>
 
@@ -235,14 +235,13 @@
           <div class="stepper-container">
             <div class="stepper">
               <div class="step complete" data-step="1"><div class="step-number">1</div><div class="step-title">Course Setup</div></div>
-              <div class="step active" data-step="2"><div class="step-number">2</div><div class="step-title">Avatar Selection</div></div>
+                <div class="step active" data-step="2"><div class="step-number">2</div><div class="step-title">Avatar Setup</div></div>
               <div class="step" data-step="3"><div class="step-number">3</div><div class="step-title">Template</div></div>
               <div class="step" data-step="4"><div class="step-number">4</div><div class="step-title">Content Upload</div></div>
               <div class="step" data-step="5"><div class="step-number">5</div><div class="step-title">Course Builder</div></div>
               <div class="step" data-step="6"><div class="step-number">6</div><div class="step-title">Assessments</div></div>
               <div class="step" data-step="7"><div class="step-number">7</div><div class="step-title">Preview</div></div>
-              <div class="step" data-step="8"><div class="step-number">8</div><div class="step-title">Avatar Generate</div></div>
-              <div class="step" data-step="9"><div class="step-number">9</div><div class="step-title">Publish</div></div>
+                <div class="step" data-step="8"><div class="step-number">8</div><div class="step-title">Publish</div></div>
             </div>
           </div>
 
@@ -307,21 +306,59 @@
               </div>
             </div>
 
-            <div class="step-content" id="step-2">
-              <div class="form-card">
-                <div class="card-header">
-                  <h3 class="card-title">Choose Your AI Avatar</h3>
-                  <p class="card-subtitle">Select an AI avatar that will present your course content</p>
-                </div>
-                <div class="card-content">
-                  <div class="avatar-grid" id="wizard-avatar-grid"></div>
+              <div class="step-content" id="step-2">
+                <div class="form-card">
+                  <div class="card-header">
+                    <h3 class="card-title">Avatar Setup</h3>
+                    <p class="card-subtitle">Select an AI avatar and configure generation settings</p>
+                  </div>
+                  <div class="card-content">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg);">
+                      <div>
+                        <h4>Choose Your AI Avatar</h4>
+                        <div class="avatar-grid" id="wizard-avatar-grid"></div>
+                      </div>
+                      <div>
+                        <h4>Selected Avatar</h4>
+                        <div id="selected-avatar-preview" style="text-align: center; padding: var(--space-lg);">
+                          <div style="color: var(--text-secondary);">
+                            <div style="font-size: 48px; margin-bottom: var(--space-md);">👤</div>
+                            <p>No avatar selected</p>
+                          </div>
+                        </div>
+                        <h4>Generation Settings</h4>
+                        <div class="form-group">
+                          <label class="form-label">Voice Style</label>
+                          <select class="form-control">
+                            <option>Professional</option>
+                            <option>Conversational</option>
+                            <option>Enthusiastic</option>
+                          </select>
+                        </div>
+                        <div class="form-group">
+                          <label class="form-label">Language</label>
+                          <select class="form-control">
+                            <option>English</option>
+                            <option>Spanish</option>
+                            <option>French</option>
+                          </select>
+                        </div>
+                        <div class="form-group">
+                          <label class="form-label">Script</label>
+                          <textarea class="form-control" id="avatar-script" rows="4" placeholder="Enter the script for your avatar..."></textarea>
+                        </div>
+                        <div style="text-align: center; margin-top: var(--space-lg);">
+                          <button class="btn btn-primary" onclick="lms.generateAvatar()">Generate Avatar Video</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
 
             <div class="wizard-navigation">
               <button class="btn btn-outline" id="prev-step-btn" disabled><span class="material-icons">arrow_back</span>Previous</button>
-              <div class="wizard-info"><span id="step-indicator">Step 1 of 9</span></div>
+              <div class="wizard-info"><span id="step-indicator">Step 1 of 8</span></div>
               <button class="btn btn-primary" id="next-step-btn">Next<span class="material-icons">arrow_forward</span></button>
             </div>
           </div>
