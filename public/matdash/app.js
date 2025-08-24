@@ -5,7 +5,7 @@ class MatDashLMS {
     constructor() {
         this.currentView = 'dashboard';
         this.currentStep = 1;
-        this.maxStep = 9;
+        this.maxStep = 10;
         this.isDarkMode = false;
         this.charts = {};
         this.selectedAvatar = null;
@@ -731,6 +731,32 @@ class MatDashLMS {
                     <div class="step-content active" id="step-7">
                         <div class="form-card">
                             <div class="card-header">
+                                <h3 class="card-title">Course Preview</h3>
+                                <p class="card-subtitle">Preview your course before generating the AI avatar</p>
+                            </div>
+                            <div class="card-content">
+                                <div style="background: #000; border-radius: var(--radius-lg); aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; color: white; margin-bottom: var(--space-lg);">
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 48px; margin-bottom: var(--space-md);">▶️</div>
+                                        <h4>Course Preview</h4>
+                                        <p>Click to preview your course content</p>
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: var(--space-md); justify-content: center;">
+                                    <button class="btn btn-outline">Edit Course</button>
+                                    <button class="btn btn-primary">Continue</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                break;
+
+            case 8:
+                stepHTML = `
+                    <div class="step-content active" id="step-8">
+                        <div class="form-card">
+                            <div class="card-header">
                                 <h3 class="card-title">Generate AI Avatar</h3>
                                 <p class="card-subtitle">Create your AI-powered video presentation</p>
                             </div>
@@ -780,9 +806,9 @@ class MatDashLMS {
                 `;
                 break;
 
-            case 8:
+            case 9:
                 stepHTML = `
-                    <div class="step-content active" id="step-8">
+                    <div class="step-content active" id="step-9">
                         <div class="form-card">
                             <div class="card-header">
                                 <h3 class="card-title">Avatar Preview</h3>
@@ -804,9 +830,9 @@ class MatDashLMS {
                 `;
                 break;
 
-            case 9:
+            case 10:
                 stepHTML = `
-                    <div class="step-content active" id="step-9">
+                    <div class="step-content active" id="step-10">
                         <div class="form-card">
                             <div class="card-header">
                                 <h3 class="card-title">Publish Avatar</h3>
